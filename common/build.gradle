@@ -1,0 +1,40 @@
+plugins {
+    id("multiloader-common")
+    id("net.neoforged.moddev.legacyforge")
+}
+
+legacyForge {
+    mcpVersion = minecraft_version
+
+    def atPath = "src/main/resources/META-INF/accesstransformer.cfg"
+
+    if (file(atPath).exists()) accessTransformers = [atPath]
+
+    parchment {
+        minecraftVersion = minecraft_version
+        mappingsVersion = mappings_channel_version
+    }
+}
+
+dependencies {
+    // Base
+    compileOnly group: "org.spongepowered", name: "mixin", version: "0.8.5"
+
+    // Dependencies
+}
+
+configurations {
+    commonJava {
+        canBeResolved = false
+        canBeConsumed = true
+    }
+    commonResources {
+        canBeResolved = false
+        canBeConsumed = true
+    }
+}
+
+artifacts {
+    commonJava sourceSets.main.java.sourceDirectories.singleFile
+    commonResources sourceSets.main.resources.sourceDirectories.singleFile
+}

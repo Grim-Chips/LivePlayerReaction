@@ -1,0 +1,122 @@
+plugins {
+    id("multiloader-loader")
+    id("net.neoforged.moddev.legacyforge")
+    id("me.modmuss50.mod-publish-plugin")
+}
+
+base {
+    archivesName = "${mod_id}-${mod_version}-${minecraft_version}-forge"
+}
+
+mixin {
+    add(sourceSets.main, "${mod_id}.refmap.json")
+
+    config("${mod_id}.mixins.json")
+    config("${mod_id}.forge.mixins.json")
+}
+
+legacyForge {
+    version = "${minecraft_version}-${forge_version}"
+
+    def at = project(':common').file('src/main/resources/META-INF/accesstransformer.cfg')
+
+    if (at.exists()) accessTransformers = [at]
+
+    parchment {
+        minecraftVersion = minecraft_version
+        mappingsVersion = mappings_channel_version
+    }
+
+    runs {
+        configureEach {
+            ideName = "Live Player Reaction Forge ${it.name.capitalize()}"
+            gameDirectory = project.file("run/${it.name}")
+            jvmArguments = ["-Xms12G", "-Xmx16G", "-XX:+UseG1GC", "-XX:+UnlockExperimentalVMOptions", "-XX:MaxGCPauseMillis=100", "-XX:+DisableExplicitGC", "-XX:TargetSurvivorRatio=90", "-XX:G1NewSizePercent=35", "-XX:G1MaxNewSizePercent=60", "-XX:G1MixedGCLiveThresholdPercent=50", "-XX:+AlwaysPreTouch"]
+        }
+
+        client {
+            client()
+        }
+
+        data {
+            data()
+        }
+
+        server {
+            server()
+        }
+    }
+
+    mods {
+        "${mod_id}" {
+            sourceSet sourceSets.main
+        }
+    }
+}
+
+sourceSets.main.resources.srcDir project(":common").file('src/generated/resources')
+
+dependencies {
+    // Base
+    annotationProcessor("org.spongepowered:mixin:${mixin_version}:processor")
+
+    // Dependencies (Mandatory)
+
+    // Dependencies (Optional)
+    modCompileOnly("mezz.jei:jei-${minecraft_version}-common-api:${forge_jei_version}")
+    modCompileOnly("mezz.jei:jei-${minecraft_version}-forge-api:${forge_jei_version}")
+
+    modRuntimeOnly("mezz.jei:jei-${minecraft_version}-forge:${forge_jei_version}")
+
+    modImplementation("curse.maven:just-enough-effect-descriptions-jeed-532286:${forge_jeed_version}")
+
+    modImplementation("curse.maven:configured-457570:${forge_configured_version}")
+    modImplementation("curse.maven:catalogue-459701:${forge_catalogue_version}")
+    modImplementation("curse.maven:gamemenumodoption-353051:${forge_gmmo_version}")
+
+    modImplementation("curse.maven:jade-324717:${forge_jade_version}")
+
+    modCompileOnly("squeek.appleskin:appleskin-forge:${forge_appleskin_version}:api")
+    modRuntimeOnly("squeek.appleskin:appleskin-forge:${forge_appleskin_version}")
+}
+
+jar {
+    finalizedBy('reobfJar')
+
+    manifest.attributes([
+            "MixinConfigs": "${mod_id}.mixins.json,${mod_id}.forge.mixins.json"
+    ])
+}
+
+processResources {
+    exclude '**/.cache/'
+
+    duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
+}
+
+publishMods {
+    file = jar.archiveFile
+    changelog = file("CHANGELOG.md").getText()
+    version = "${mod_version}-${minecraft_version}"
+    displayName = "${mod_name} v${mod_version}-${minecraft_version}"
+    type = STABLE
+
+    modLoaders.add("neoforge")
+
+    curseforge {
+        projectId = ""
+        projectSlug = ""
+        accessToken = providers.environmentVariable("CURSEFORGE_API_KEY")
+        announcementTitle = "New Create: Mecha Mayhem [NeoForge] CurseForge Release"
+
+        getMinecraftVersions().add(minecraft_version)
+    }
+
+    modrinth {
+        projectId = ""
+        accessToken = providers.environmentVariable("MODRINTH_API_KEY")
+        announcementTitle = "New Create: Mecha Mayhem [NeoForge] Modrinth Release"
+
+        getMinecraftVersions().add(minecraft_version)
+    }
+}

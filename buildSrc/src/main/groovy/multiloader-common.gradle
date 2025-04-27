@@ -1,0 +1,228 @@
+plugins {
+    id("java-library")
+    id("maven-publish")
+}
+
+base {
+    archivesName = "${mod_id}-${mod_version}-${minecraft_version}"
+}
+
+java {
+    toolchain.languageVersion = JavaLanguageVersion.of(17)
+
+    withSourcesJar()
+    withJavadocJar()
+}
+
+repositories {
+    mavenCentral()
+
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = "SpongePowered Maven"
+                url = "https://repo.spongepowered.org/repository/maven-public"
+            }
+        }
+
+        filter {
+            includeGroupAndSubgroups("org.spongepowered")
+        }
+    }
+
+    exclusiveContent {
+        forRepositories(
+                maven {
+                    name = "ParchmentMC Maven"
+                    url = "https://maven.parchmentmc.org/"
+                },
+
+                maven {
+                    name = "NeoForge Maven"
+                    url = "https://maven.neoforged.net/releases"
+                }
+        )
+        filter {
+            includeGroup("org.parchmentmc.data")
+        }
+    }
+
+    maven {
+        name = "CurseMaven"
+        url = "https://www.cursemaven.com"
+    }
+
+    maven {
+        name = "Modrinth Maven"
+        url = "https://api.modrinth.com/maven"
+    }
+
+    maven {
+        name = "KosmX Maven"
+        url = "https://maven.kosmx.dev/"
+    }
+
+    maven {
+        name = "CubicInterpolation Maven"
+        url = "https://cubicinterpolation.net/maven/"
+    }
+
+    maven {
+        name = "BlameJared maven"
+        url = "https://maven.blamejared.com/"
+    }
+
+    maven {
+        name = "RyanLiptak Maven"
+        url = "https://maven.ryanliptak.com/"
+    }
+
+    maven {
+        name = "TerraformersMC Maven"
+        url = "https://maven.terraformersmc.com/releases"
+    }
+
+    maven {
+        name = "DevOS Maven (Snapshots)"
+        url = "https://mvn.devos.one/snapshots/"
+    }
+
+    maven {
+        name = "DevOS Maven (Releases)"
+        url = "https://mvn.devos.one/releases/"
+    }
+
+    maven {
+        name = "Shedaniel Maven"
+        url = "https://maven.shedaniel.me/"
+    }
+}
+
+['apiElements', 'runtimeElements', 'sourcesElements', 'javadocElements'].each { variant ->
+    configurations."$variant".outgoing {
+        capability("${mod_group}:${mod_name}:${mod_version}")
+        capability("${mod_group}:${mod_id}--${minecraft_version}:${mod_version}")
+        capability("${mod_group}:${mod_id}:${mod_version}")
+    }
+
+    publishing.publications.configureEach {
+        suppressPomMetadataWarningsFor(variant)
+    }
+}
+
+sourcesJar {
+    from(rootProject.file('LICENSE')) {
+        rename { "${it}_${mod_name}" }
+    }
+}
+
+jar {
+    from(rootProject.file('LICENSE')) {
+        rename { "${it}_${mod_name}" }
+    }
+
+    manifest {
+        attributes([
+                'Specification-Title'   : mod_name,
+                'Specification-Vendor'  : mod_authors,
+                'Specification-Version' : mod_version,
+                'Implementation-Title'  : project.name,
+                'Implementation-Version': mod_version,
+                'Implementation-Vendor' : mod_authors,
+                'Built-On-Minecraft'    : minecraft_version
+        ])
+    }
+}
+
+processResources {
+    def expandProps = [
+            // Base
+            "mod_id"                             : mod_id,
+            "mod_name"                           : mod_name,
+            "mod_version"                        : mod_version,
+            "mod_group"                          : mod_group,
+
+            "mod_credits"                        : mod_credits,
+            "mod_authors"                        : mod_authors,
+
+            "mod_description"                    : mod_description,
+            "mod_license"                        : mod_license,
+
+            "minecraft_version"                  : minecraft_version,
+            "minecraft_version_range"            : minecraft_version_range,
+
+            // Forge (Base)
+            "issue_tracker_url"                  : issue_tracker_url,
+            "display_url"                        : display_url,
+            "auto_update_url"                    : auto_update_url,
+
+            "mod_logo_path"                      : mod_logo_path,
+
+            "forge_loader_version_range"         : forge_loader_version_range,
+            "forge_version_range"                : forge_version_range,
+
+            // Fabric (Base)
+            "homepage_url"                       : homepage_url,
+            "source_code_url"                    : source_code_url,
+
+            "mod_icon_path"                      : mod_icon_path,
+
+            "fabric_common_entrypoint"           : fabric_common_entrypoint,
+            "fabric_client_entrypoint"           : fabric_client_entrypoint,
+            "fabric_datagen_entrypoint"          : fabric_datagen_entrypoint,
+
+            "fabric_loader_version_range"        : fabric_loader_version_range,
+            "fabric_minecraft_version_range"     : fabric_minecraft_version_range,
+
+            // Forge (Dependencies)
+            "forge_playeranimator_version_range" : forge_playeranimator_version_range,
+
+            // Fabric (Dependencies)
+            "fabric_api_version_range"           : fabric_api_version_range,
+            "fabric_playeranimator_version_range": fabric_playeranimator_version_range,
+
+            // Forge (Extras)
+            "forge_jei_version_range"            : forge_jei_version_range,
+            "forge_jeed_version_range"           : forge_jeed_version_range,
+
+            "forge_configured_version_range"     : forge_configured_version_range,
+            "forge_catalogue_version_range"      : forge_catalogue_version_range,
+            "forge_gmmo_version_range"           : forge_gmmo_version_range,
+
+            "forge_jade_version_range"           : forge_jade_version_range,
+            "forge_appleskin_version_range"      : forge_appleskin_version_range,
+
+            // Fabric (Extras)
+            "fabric_jei_version_range"           : fabric_jei_version_range,
+            "fabric_appleskin_version_range"     : fabric_appleskin_version_range,
+
+            "fabric_modmenu_version_range"       : fabric_modmenu_version_range
+    ]
+
+    def jsonExpandProps = expandProps.collectEntries {
+        key, value -> [(key): value instanceof String ? value.replace("\n", "\\\\n") : value]
+    }
+
+    filesMatching(['META-INF/mods.toml']) {
+        expand expandProps
+    }
+
+    filesMatching(['pack.mcmeta', 'fabric.mod.json', '*.mixins.json']) {
+        expand jsonExpandProps
+    }
+
+    inputs.properties(expandProps)
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifactId = base.archivesName.get()
+            version = mod_version
+
+            artifact jar
+            artifact sourcesJar
+            artifact javadocJar
+        }
+    }
+}
