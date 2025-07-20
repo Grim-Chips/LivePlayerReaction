@@ -6,6 +6,6 @@ import net.minecraftforge.fml.common.Mod;
 public class LivePlayerReactionForge {
     
     public LivePlayerReactionForge() {
-
+        LivePlayerReaction.initialize();
     }
 }

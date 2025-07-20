@@ -5,7 +5,7 @@ plugins {
 }
 
 base {
-    archivesName = "${mod_id}-${mod_version}-${minecraft_version}-fabric"
+    archivesName = "${mod_id}-fabric"
 }
 
 dependencies {
@@ -86,7 +86,7 @@ publishMods {
         projectId = ""
         projectSlug = ""
         accessToken = providers.environmentVariable("CURSEFORGE_API_KEY")
-        announcementTitle = "New Live Player Reaction [Fabric] CurseForge Release"
+        announcementTitle = "New Live Player Reaction [Fabric] CurseForge Release - v${mod_version} for MC ${minecraft_version}"
 
         getMinecraftVersions().add(minecraft_version)
     }
@@ -94,7 +94,7 @@ publishMods {
     modrinth {
         projectId = ""
         accessToken = providers.environmentVariable("MODRINTH_API_KEY")
-        announcementTitle = "New Live Player Reaction [Fabric] Modrinth Release"
+        announcementTitle = "New Live Player Reaction [Fabric] Modrinth Release - v${mod_version} for MC ${minecraft_version}"
 
         getMinecraftVersions().add(minecraft_version)
     }

@@ -5,7 +5,7 @@ plugins {
 }
 
 base {
-    archivesName = "${mod_id}-${mod_version}-${minecraft_version}-forge"
+    archivesName = "${mod_id}-forge"
 }
 
 mixin {
@@ -31,7 +31,7 @@ legacyForge {
         configureEach {
             ideName = "Live Player Reaction Forge ${it.name.capitalize()}"
             gameDirectory = project.file("run/${it.name}")
-            jvmArguments = ["-Xms12G", "-Xmx16G", "-XX:+UseG1GC", "-XX:+UnlockExperimentalVMOptions", "-XX:MaxGCPauseMillis=100", "-XX:+DisableExplicitGC", "-XX:TargetSurvivorRatio=90", "-XX:G1NewSizePercent=35", "-XX:G1MaxNewSizePercent=60", "-XX:G1MixedGCLiveThresholdPercent=50", "-XX:+AlwaysPreTouch"]
+            jvmArguments = ["-Xms12G", "-Xmx16G", "-XX:+UseG1GC", "-XX:+UnlockExperimentalVMOptions", "-XX:MaxGCPauseMillis=100", "-XX:+DisableExplicitGC", "-XX:TargetSurvivorRatio=90", "-XX:G1NewSizePercent=35", "-XX:G1MaxNewSizePercent=60", "-XX:G1MixedGCLiveThresholdPercent=50", "-XX:+AlwaysPreTouch", "-Dterminal.ansi=true"]
         }
 
         client {
@@ -101,13 +101,14 @@ publishMods {
     displayName = "${mod_name} v${mod_version}-${minecraft_version}"
     type = STABLE
 
+    modLoaders.add("forge")
     modLoaders.add("neoforge")
 
     curseforge {
         projectId = ""
         projectSlug = ""
         accessToken = providers.environmentVariable("CURSEFORGE_API_KEY")
-        announcementTitle = "New Create: Mecha Mayhem [NeoForge] CurseForge Release"
+        announcementTitle = "New Live Player Reaction [Neo/Forge] CurseForge Release - v${mod_version} for MC ${minecraft_version}"
 
         getMinecraftVersions().add(minecraft_version)
     }
@@ -115,7 +116,7 @@ publishMods {
     modrinth {
         projectId = ""
         accessToken = providers.environmentVariable("MODRINTH_API_KEY")
-        announcementTitle = "New Create: Mecha Mayhem [NeoForge] Modrinth Release"
+        announcementTitle = "New Live Player Reaction [Neo/Forge] Modrinth Release - v${mod_version} for MC ${minecraft_version}"
 
         getMinecraftVersions().add(minecraft_version)
     }

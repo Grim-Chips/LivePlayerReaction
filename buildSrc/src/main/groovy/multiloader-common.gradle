@@ -4,7 +4,7 @@ plugins {
 }
 
 base {
-    archivesName = "${mod_id}-${mod_version}-${minecraft_version}"
+    archivesName = "${mod_id}-common"
 }
 
 java {
@@ -220,9 +220,7 @@ publishing {
             artifactId = base.archivesName.get()
             version = mod_version
 
-            artifact jar
-            artifact sourcesJar
-            artifact javadocJar
+            from components.java
         }
     }
 }
