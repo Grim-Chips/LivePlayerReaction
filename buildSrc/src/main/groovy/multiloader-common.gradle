@@ -4,7 +4,7 @@ plugins {
 }
 
 base {
-    archivesName = "${mod_id}-common"
+    archivesName = "${mod_id}-common-${minecraft_version}"
 }
 
 java {
@@ -135,83 +135,23 @@ jar {
 }
 
 processResources {
-    def expandProps = [
-            // Base
-            "mod_id"                             : mod_id,
-            "mod_name"                           : mod_name,
-            "mod_version"                        : mod_version,
-            "mod_group"                          : mod_group,
+    def props = new Properties()
 
-            "mod_credits"                        : mod_credits,
-            "mod_authors"                        : mod_authors,
+    rootProject.file('gradle.properties').withInputStream { props.load(it) }
 
-            "mod_description"                    : mod_description,
-            "mod_license"                        : mod_license,
+    // Filter out any non-String values and system properties
+    def replaceProperties = [:]
 
-            "minecraft_version"                  : minecraft_version,
-            "minecraft_version_range"            : minecraft_version_range,
-
-            // Forge (Base)
-            "issue_tracker_url"                  : issue_tracker_url,
-            "display_url"                        : display_url,
-            "auto_update_url"                    : auto_update_url,
-
-            "mod_logo_path"                      : mod_logo_path,
-
-            "forge_loader_version_range"         : forge_loader_version_range,
-            "forge_version_range"                : forge_version_range,
-
-            // Fabric (Base)
-            "homepage_url"                       : homepage_url,
-            "source_code_url"                    : source_code_url,
-
-            "mod_icon_path"                      : mod_icon_path,
-
-            "fabric_common_entrypoint"           : fabric_common_entrypoint,
-            "fabric_client_entrypoint"           : fabric_client_entrypoint,
-            "fabric_datagen_entrypoint"          : fabric_datagen_entrypoint,
-
-            "fabric_loader_version_range"        : fabric_loader_version_range,
-            "fabric_minecraft_version_range"     : fabric_minecraft_version_range,
-
-            // Forge (Dependencies)
-            "forge_playeranimator_version_range" : forge_playeranimator_version_range,
-
-            // Fabric (Dependencies)
-            "fabric_api_version_range"           : fabric_api_version_range,
-            "fabric_playeranimator_version_range": fabric_playeranimator_version_range,
-
-            // Forge (Extras)
-            "forge_jei_version_range"            : forge_jei_version_range,
-            "forge_jeed_version_range"           : forge_jeed_version_range,
-
-            "forge_configured_version_range"     : forge_configured_version_range,
-            "forge_catalogue_version_range"      : forge_catalogue_version_range,
-            "forge_gmmo_version_range"           : forge_gmmo_version_range,
-
-            "forge_jade_version_range"           : forge_jade_version_range,
-            "forge_appleskin_version_range"      : forge_appleskin_version_range,
-
-            // Fabric (Extras)
-            "fabric_jei_version_range"           : fabric_jei_version_range,
-            "fabric_appleskin_version_range"     : fabric_appleskin_version_range,
-
-            "fabric_modmenu_version_range"       : fabric_modmenu_version_range
-    ]
-
-    def jsonExpandProps = expandProps.collectEntries {
-        key, value -> [(key): value instanceof String ? value.replace("\n", "\\\\n") : value]
+    props.each { key, value ->
+        if (value instanceof String) {
+            replaceProperties.put(key, value)
+        }
     }
 
-    filesMatching(['META-INF/mods.toml']) {
-        expand expandProps
+    inputs.properties(replaceProperties)
+    filesMatching(['META-INF/mods.toml', 'fabric.mods.json', 'pack.mcmeta', '*.mixins.json']) {
+        expand replaceProperties + [project: project]
     }
-
-    filesMatching(['pack.mcmeta', 'fabric.mod.json', '*.mixins.json']) {
-        expand jsonExpandProps
-    }
-
-    inputs.properties(expandProps)
 }
 
 publishing {

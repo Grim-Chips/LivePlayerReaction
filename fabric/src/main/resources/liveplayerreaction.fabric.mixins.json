@@ -10,9 +10,6 @@
     "client": [
 
     ],
-    "server": [
-
-    ],
     "injectors": {
       "defaultRequire": 1
     }
