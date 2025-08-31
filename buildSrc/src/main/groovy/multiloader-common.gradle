@@ -58,11 +58,6 @@ repositories {
     }
 
     maven {
-        name = "KosmX Maven"
-        url = "https://maven.kosmx.dev/"
-    }
-
-    maven {
         name = "CubicInterpolation Maven"
         url = "https://cubicinterpolation.net/maven/"
     }

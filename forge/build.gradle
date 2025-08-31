@@ -97,8 +97,8 @@ processResources {
 publishMods {
     file = jar.archiveFile
     changelog = file("CHANGELOG.md").getText()
-    version = "${mod_version}-${minecraft_version}"
-    displayName = "${mod_name} v${mod_version}-${minecraft_version}"
+    version = "${minecraft_version} ${mod_version}"
+    displayName = "${mod_name} v${minecraft_version}-${mod_version}"
     type = STABLE
 
     modLoaders.add("forge")
