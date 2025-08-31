@@ -1,18 +1,38 @@
 package com.mememan.liveplayerreaction.api.parsing.object;
 
+import com.mememan.liveplayerreaction.api.math.easings.BedrockEasing;
 import com.mojang.datafixers.util.Either;
-import org.joml.Vector3d;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 public record AnimationKeyframeData(Optional<Map<Double, Either<PrimitiveKeyframeValueData, VerboseKeyframeValueData>>> keyframes) {
+    public static final Codec<Either<String, Double>> KEYFRAME_INFO_CODEC = Codec.either(Codec.STRING, Codec.DOUBLE);
+    public static final Codec<List<Either<String, Double>>> KEYFRAME_INFO_ARRAY_CODEC = Codec.list(KEYFRAME_INFO_CODEC);
+    public static final Codec<AnimationKeyframeData> CODEC = Codec.unboundedMap(Codec.DOUBLE, Codec.either(PrimitiveKeyframeValueData.CODEC, VerboseKeyframeValueData.CODEC)).xmap(
+            keyframeMap -> new AnimationKeyframeData(Optional.ofNullable(keyframeMap)),
+            animationKeyframeData -> animationKeyframeData.keyframes().orElse(Map.of())
+    );
 
     public record PrimitiveKeyframeValueData(Either<String, Double> xKeyframeTarget, Either<String, Double> yKeyframeTarget, Either<String, Double> zKeyframeTarget) {
-
+        public static final Codec<PrimitiveKeyframeValueData> CODEC = KEYFRAME_INFO_ARRAY_CODEC.xmap(
+                keyframeTargets -> new PrimitiveKeyframeValueData(keyframeTargets.get(0), keyframeTargets.get(1), keyframeTargets.get(2)),
+                primitiveKeyframeValueData -> List.of(primitiveKeyframeValueData.xKeyframeTarget(), primitiveKeyframeValueData.yKeyframeTarget(), primitiveKeyframeValueData.zKeyframeTarget())
+        );
     }
 
-    public record VerboseKeyframeValueData(Optional<Vector3d> preKeyframeTarget, Optional<Vector3d> postKeyframeTarget) {
-
+    public record VerboseKeyframeValueData(Optional<List<Either<String, Double>>> preKeyframeTarget, Optional<List<Either<String, Double>>> postKeyframeTarget, Optional<BedrockEasing> lerpMode) {
+        public static final Codec<BedrockEasing> EASING_CODEC = Codec.STRING.xmap(
+                easingName -> BedrockEasing.getEasing(easingName).orElse(BedrockEasing.LINEAR),
+                easingType -> BedrockEasing.getSerializedName(easingType).orElse("linear")
+        );
+        public static final Codec<VerboseKeyframeValueData> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+                KEYFRAME_INFO_ARRAY_CODEC.optionalFieldOf("pre").forGetter(VerboseKeyframeValueData::preKeyframeTarget),
+                KEYFRAME_INFO_ARRAY_CODEC.optionalFieldOf("post").forGetter(VerboseKeyframeValueData::postKeyframeTarget),
+                EASING_CODEC.optionalFieldOf("lerp_mode").forGetter(VerboseKeyframeValueData::lerpMode)
+        ).apply(instance, VerboseKeyframeValueData::new));
     }
 }

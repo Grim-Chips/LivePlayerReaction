@@ -25,6 +25,13 @@ public interface BedrockEasing {
         return Optional.ofNullable(KNOWN_EASINGS.get(easingName.toLowerCase(Locale.ROOT)));
     }
 
+    static Optional<String> getSerializedName(BedrockEasing easing) {
+        return KNOWN_EASINGS.entrySet().stream()
+            .filter(entry -> entry.getValue().equals(easing))
+            .map(Map.Entry::getKey)
+            .findFirst();
+    }
+
     static double selectOrDefault(OptionalDouble originalPreValue, OptionalDouble originalPostValue) {
         return originalPreValue.orElse(originalPostValue.orElse(0)); // Fallback should never be hit, but JIC
     }
