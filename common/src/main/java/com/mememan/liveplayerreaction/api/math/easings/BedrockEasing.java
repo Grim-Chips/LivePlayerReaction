@@ -25,7 +25,7 @@ public interface BedrockEasing {
         return Optional.ofNullable(KNOWN_EASINGS.get(easingName.toLowerCase(Locale.ROOT)));
     }
 
-    static Optional<String> getSerializedName(BedrockEasing easing) {
+    static Optional<String> getNameForEasing(BedrockEasing easing) {
         return KNOWN_EASINGS.entrySet().stream()
             .filter(entry -> entry.getValue().equals(easing))
             .map(Map.Entry::getKey)

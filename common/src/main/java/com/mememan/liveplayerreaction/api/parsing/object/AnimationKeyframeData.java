@@ -27,7 +27,7 @@ public record AnimationKeyframeData(Optional<Map<Double, Either<PrimitiveKeyfram
     public record VerboseKeyframeValueData(Optional<List<Either<String, Double>>> preKeyframeTarget, Optional<List<Either<String, Double>>> postKeyframeTarget, Optional<BedrockEasing> lerpMode) {
         public static final Codec<BedrockEasing> EASING_CODEC = Codec.STRING.xmap(
                 easingName -> BedrockEasing.getEasing(easingName).orElse(BedrockEasing.LINEAR),
-                easingType -> BedrockEasing.getSerializedName(easingType).orElse("linear")
+                easingType -> BedrockEasing.getNameForEasing(easingType).orElse("linear")
         );
         public static final Codec<VerboseKeyframeValueData> CODEC = RecordCodecBuilder.create(instance -> instance.group(
                 KEYFRAME_INFO_ARRAY_CODEC.optionalFieldOf("pre").forGetter(VerboseKeyframeValueData::preKeyframeTarget),
