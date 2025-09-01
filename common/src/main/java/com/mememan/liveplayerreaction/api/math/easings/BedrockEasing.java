@@ -14,7 +14,7 @@ public interface BedrockEasing {
     // Primary Easing Functions (evaluated without any easing arguments, just the original values)
     BedrockEasing LINEAR = register("linear", BedrockEasing::selectOrDefault);
 
-    double ease(OptionalDouble originalPreValue, OptionalDouble originalPostValue); // Double2DoubleFunction
+    double ease(double currentTransitionProgress, OptionalDouble originalPreValue, OptionalDouble originalPostValue); // Double2DoubleFunction
 
     static BedrockEasing register(String easingName, BedrockEasing easing) {
         KNOWN_EASINGS.put(easingName.toLowerCase(Locale.ROOT), easing); // No #putIfAbsent because overrides ftw (idk it doesn't actually matter all that much here)
@@ -32,7 +32,7 @@ public interface BedrockEasing {
             .findFirst();
     }
 
-    static double selectOrDefault(OptionalDouble originalPreValue, OptionalDouble originalPostValue) {
+    static double selectOrDefault(double currentTransitionProgress, OptionalDouble originalPreValue, OptionalDouble originalPostValue) {
         return originalPreValue.orElse(originalPostValue.orElse(0)); // Fallback should never be hit, but JIC
     }
 }

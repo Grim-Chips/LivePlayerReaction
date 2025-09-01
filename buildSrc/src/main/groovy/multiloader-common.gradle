@@ -1,6 +1,9 @@
 plugins {
+    id("java")
     id("java-library")
     id("maven-publish")
+    id("eclipse")
+    id("idea")
 }
 
 base {
@@ -96,6 +99,7 @@ repositories {
 ['apiElements', 'runtimeElements', 'sourcesElements', 'javadocElements'].each { variant ->
     configurations."$variant".outgoing {
         capability("${mod_group}:${mod_name}:${mod_version}")
+        capability("${mod_group}:${mod_name}--${minecraft_version}:${mod_version}")
         capability("${mod_group}:${mod_id}--${minecraft_version}:${mod_version}")
         capability("${mod_group}:${mod_id}:${mod_version}")
     }
@@ -144,9 +148,24 @@ processResources {
     }
 
     inputs.properties(replaceProperties)
-    filesMatching(['META-INF/mods.toml', 'fabric.mods.json', 'pack.mcmeta', '*.mixins.json']) {
+    filesMatching(['META-INF/mods.toml', 'fabric.mod.json', 'pack.mcmeta', '*.mixins.json']) {
         expand replaceProperties + [project: project]
     }
+}
+
+tasks.withType(GenerateModuleMetadata).configureEach {
+    enabled = false
+}
+
+tasks.withType(JavaCompile).configureEach {
+    it.options.encoding = 'UTF-8'
+    it.options.getRelease().set(17)
+}
+
+tasks.withType(Javadoc).configureEach {
+    it.options.encoding = 'UTF-8'
+    it.options.addStringOption('Xdoclint', 'none')
+    it.failOnError = false
 }
 
 publishing {
@@ -154,6 +173,7 @@ publishing {
         mavenJava(MavenPublication) {
             artifactId = base.archivesName.get()
             version = mod_version
+            group = mod_group
 
             from components.java
         }

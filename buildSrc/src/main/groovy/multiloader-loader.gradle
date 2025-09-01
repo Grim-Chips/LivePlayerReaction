@@ -45,7 +45,3 @@ tasks.named('sourcesJar', Jar) {
     dependsOn(configurations.commonResources)
     from(configurations.commonResources)
 }
-
-tasks.withType(GenerateModuleMetadata).configureEach {
-    setEnabled(false)
-}

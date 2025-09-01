@@ -8,7 +8,10 @@ legacyForge {
 
     def atPath = "src/main/resources/META-INF/accesstransformer.cfg"
 
-    if (file(atPath).exists()) accessTransformers = [atPath]
+    if (file(atPath).exists()) {
+        accessTransformers = [atPath]
+        validateAccessTransformers = true
+    }
 
     parchment {
         minecraftVersion = minecraft_version
@@ -18,9 +21,10 @@ legacyForge {
 
 dependencies {
     // Base
-    compileOnly group: "org.spongepowered", name: "mixin", version: "0.8.5"
+    compileOnly group: "org.spongepowered", name: "mixin", version: mixin_version
 
     // Dependencies
+    implementation group: "team.unnamed", name: "mocha", version: mocha_version
 }
 
 configurations {

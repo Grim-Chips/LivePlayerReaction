@@ -20,7 +20,10 @@ legacyForge {
 
     def at = project(':common').file('src/main/resources/META-INF/accesstransformer.cfg')
 
-    if (at.exists()) accessTransformers = [at]
+    if (at.exists()) {
+        accessTransformers = [at]
+        validateAccessTransformers = true
+    }
 
     parchment {
         minecraftVersion = minecraft_version
@@ -31,7 +34,10 @@ legacyForge {
         configureEach {
             ideName = "Live Player Reaction Forge ${it.name.capitalize()}"
             gameDirectory = project.file("run/${it.name}")
-            jvmArguments = ["-Xms12G", "-Xmx16G", "-XX:+UseG1GC", "-XX:+UnlockExperimentalVMOptions", "-XX:MaxGCPauseMillis=100", "-XX:+DisableExplicitGC", "-XX:TargetSurvivorRatio=90", "-XX:G1NewSizePercent=35", "-XX:G1MaxNewSizePercent=60", "-XX:G1MixedGCLiveThresholdPercent=50", "-XX:+AlwaysPreTouch", "-Dterminal.ansi=true"]
+            jvmArguments = ["-Xms12G", "-Xmx16G", "-XX:+UseG1GC", "-XX:+UnlockExperimentalVMOptions",
+                            "-XX:MaxGCPauseMillis=100", "-XX:+DisableExplicitGC", "-XX:TargetSurvivorRatio=90",
+                            "-XX:G1NewSizePercent=35", "-XX:G1MaxNewSizePercent=60",
+                            "-XX:G1MixedGCLiveThresholdPercent=50", "-XX:+AlwaysPreTouch", "-Dterminal.ansi=true"]
         }
 
         client {
@@ -56,11 +62,23 @@ legacyForge {
 
 sourceSets.main.resources.srcDir project(":common").file('src/generated/resources')
 
+jarJar.setEnabled(true)
+
 dependencies {
     // Base
     annotationProcessor("org.spongepowered:mixin:${mixin_version}:processor")
 
+    implementation("org.jetbrains:annotations:26.0.2") // Bandaid
+
+    compileOnly project(":common")
+
     // Dependencies (Mandatory)
+    jarJar(implementation("team.unnamed:mocha")) {
+        version {
+            prefer(mocha_version)
+        }
+    }
+    additionalRuntimeClasspath("team.unnamed:mocha:${mocha_version}")
 
     // Dependencies (Optional)
     modCompileOnly("mezz.jei:jei-${minecraft_version}-common-api:${forge_jei_version}")
@@ -81,8 +99,6 @@ dependencies {
 }
 
 jar {
-    finalizedBy('reobfJar')
-
     manifest.attributes([
             "MixinConfigs": "${mod_id}.mixins.json,${mod_id}.forge.mixins.json"
     ])
