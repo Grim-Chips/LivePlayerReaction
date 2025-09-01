@@ -60,7 +60,7 @@ legacyForge {
     }
 }
 
-sourceSets.main.resources.srcDir project(":common").file('src/generated/resources')
+sourceSets.main.resources.srcDir project(":common").file("src/generated/resources")
 
 jarJar.setEnabled(true)
 
