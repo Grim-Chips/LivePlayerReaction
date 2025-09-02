@@ -1,4 +1,4 @@
-package com.mememan.liveplayerreaction.api.animation.object;
+package com.mememan.liveplayerreaction.api.animation;
 
 import com.mememan.liveplayerreaction.api.parsing.object.AnimationCollection;
 import com.mememan.liveplayerreaction.api.parsing.object.AnimationData;
