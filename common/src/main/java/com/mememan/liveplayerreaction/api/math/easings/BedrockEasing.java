@@ -49,7 +49,7 @@ public interface BedrockEasing {
             Optional<DoubleList> optionalControlPoints = transformationContext.splineControlPoints();
 
             if (optionalControlPoints.isEmpty() || optionalControlPoints.get().size() < 4) return applyLinearEasing(transformationContext).apply(interpolationProgress);
-            else return Mth.catmullrom((float) interpolationProgress, optionalControlPoints.get().get(0).floatValue(), optionalControlPoints.get().get(1).floatValue(), optionalControlPoints.get().get(2).floatValue(), optionalControlPoints.get().get(3).floatValue());
+            else return Mth.catmullrom((float) interpolationProgress, (float) optionalControlPoints.get().getDouble(0), (float) optionalControlPoints.get().getDouble(1), (float) optionalControlPoints.get().getDouble(2), (float) optionalControlPoints.get().getDouble(3));
         };
     }
 }
