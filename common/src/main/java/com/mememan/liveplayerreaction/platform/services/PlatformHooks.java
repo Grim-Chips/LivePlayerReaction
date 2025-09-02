@@ -1,6 +1,4 @@
 package com.mememan.liveplayerreaction.platform.services;
 
-public interface EventHooks {
-
-    
+public interface PlatformHooks {
 }

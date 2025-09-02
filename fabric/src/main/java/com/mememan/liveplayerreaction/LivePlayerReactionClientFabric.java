@@ -6,6 +6,6 @@ public class LivePlayerReactionClientFabric implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
-
+        LivePlayerReaction.initialize();
     }
 }
