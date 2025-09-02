@@ -4,10 +4,9 @@
     "package": "com.mememan.liveplayerreaction.mixins",
     "refmap": "${mod_id}.refmap.json",
     "compatibilityLevel": "JAVA_17",
-    "mixins": [
-    ],
     "client": [
-        "MinecraftMixin"
+        "model.PlayerModelMixin",
+        "renderer.PlayerRendererMixin"
     ],
     "injectors": {
         "defaultRequire": 1

@@ -26,9 +26,14 @@ public interface BedrockEasing {
         Either<Double, Double> initialTransformValue = transformationContext.initialTransformValue();
         double chosenInitialValue = initialTransformValue
                 .left()
-                .orElse(initialTransformValue.right().orElseThrow(() -> new IllegalArgumentException(String.format("Initial transform value is missing for easing %s at tick: %s", getNameForEasing(easing), transformationContext.currentAnimationRenderTick()))));
+                .orElse(initialTransformValue.right().orElseThrow(() -> new IllegalArgumentException(String.format("Initial transform value is missing for '%s' easing at tick: %s", getNameForEasing(easing), transformationContext.currentAnimationRenderTick()))));
+        double finalTransformValue = transformationContext.finalTransformValue();
+        double curRenderTick = transformationContext.currentAnimationRenderTick();
+        double contextTickLength = transformationContext.contextTickLength();
 
-        return Mth.lerp(chosenInitialValue, transformationContext.finalTransformValue(), easing.ease(transformationContext).apply(transformationContext.currentAnimationRenderTick() / transformationContext.contextTickLength()));
+        return curRenderTick >= contextTickLength
+                ? finalTransformValue
+                : Mth.lerp(chosenInitialValue, finalTransformValue, easing.ease(transformationContext).apply(curRenderTick / contextTickLength));
     }
 
     static BedrockEasing register(String easingName, BedrockEasing easing) {
