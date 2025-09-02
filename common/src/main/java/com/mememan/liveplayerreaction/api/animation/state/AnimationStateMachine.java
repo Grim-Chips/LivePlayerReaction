@@ -6,4 +6,14 @@ public final class AnimationStateMachine {
     private AnimationStateMachine() {
 
     }
+
+    public void enqueueAnimation(String animName) {
+
+    }
+
+    public void enqueueAnimations(String... animNames) {
+        for (String animName : animNames) {
+            enqueueAnimation(animName);
+        }
+    }
 }

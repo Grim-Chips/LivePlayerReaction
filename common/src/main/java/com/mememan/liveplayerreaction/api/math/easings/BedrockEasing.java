@@ -19,6 +19,7 @@ public interface BedrockEasing {
     BedrockEasing LINEAR = register("linear", BedrockEasing::applyLinearEasing);
     BedrockEasing CATMULLROM = register("catmullrom", BedrockEasing::applyCatmullRomEasing);
     BedrockEasing STEP = register("step", BedrockEasing::applyStepEasing); //TODO Maybe properly implement beyond basic BB functionality if needed
+    /* Bezier easings get baked in the final animation file, and the bedrock format does not supply any form of data to hold spline args directly, so no need for it, for now */
 
     Double2DoubleFunction ease(AnimationTransformationContext transformationContext);
 
