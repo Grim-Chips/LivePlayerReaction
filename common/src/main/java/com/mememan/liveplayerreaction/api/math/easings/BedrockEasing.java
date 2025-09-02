@@ -1,6 +1,7 @@
 package com.mememan.liveplayerreaction.api.math.easings;
 
 import com.mememan.liveplayerreaction.api.animation.transform.AnimationTransformationContext;
+import com.mojang.datafixers.util.Either;
 import it.unimi.dsi.fastutil.doubles.Double2DoubleFunction;
 import it.unimi.dsi.fastutil.doubles.DoubleList;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
@@ -17,11 +18,17 @@ public interface BedrockEasing {
     // Primary Easing Functions (evaluated without any easing arguments besides pre and post, if present, otherwise just the original values)
     BedrockEasing LINEAR = register("linear", BedrockEasing::applyLinearEasing);
     BedrockEasing CATMULLROM = register("catmullrom", BedrockEasing::applyCatmullRomEasing);
+    BedrockEasing STEP = register("step", BedrockEasing::applyStepEasing); //TODO Maybe properly implement beyond basic BB functionality if needed
 
     Double2DoubleFunction ease(AnimationTransformationContext transformationContext);
 
     static double applyEasingTransformation(BedrockEasing easing, AnimationTransformationContext transformationContext) {
-        return easing.ease(transformationContext).apply(transformationContext.currentAnimationRenderTick() / transformationContext.contextTickLength());
+        Either<Double, Double> initialTransformValue = transformationContext.initialTransformValue();
+        double chosenInitialValue = initialTransformValue
+                .left()
+                .orElse(initialTransformValue.right().orElseThrow(() -> new IllegalArgumentException(String.format("Initial transform value is missing for easing %s at tick: %s", getNameForEasing(easing), transformationContext.currentAnimationRenderTick()))));
+
+        return Mth.lerp(chosenInitialValue, transformationContext.finalTransformValue(), easing.ease(transformationContext).apply(transformationContext.currentAnimationRenderTick() / transformationContext.contextTickLength()));
     }
 
     static BedrockEasing register(String easingName, BedrockEasing easing) {
@@ -51,5 +58,9 @@ public interface BedrockEasing {
             if (optionalControlPoints.isEmpty() || optionalControlPoints.get().size() < 4) return applyLinearEasing(transformationContext).apply(interpolationProgress);
             else return Mth.catmullrom((float) interpolationProgress, (float) optionalControlPoints.get().getDouble(0), (float) optionalControlPoints.get().getDouble(1), (float) optionalControlPoints.get().getDouble(2), (float) optionalControlPoints.get().getDouble(3));
         };
+    }
+
+    static Double2DoubleFunction applyStepEasing(AnimationTransformationContext transformationContext) {
+        return (interpolationProgress) -> 1.0F;
     }
 }
