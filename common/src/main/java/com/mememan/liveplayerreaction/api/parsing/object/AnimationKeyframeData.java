@@ -4,23 +4,28 @@ import com.mememan.liveplayerreaction.api.math.easings.BedrockEasing;
 import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public record AnimationKeyframeData(Optional<Map<Double, Either<PrimitiveKeyframeValueData, VerboseKeyframeValueData>>> keyframes) {
     public static final Codec<Either<String, Double>> KEYFRAME_INFO_CODEC = Codec.either(Codec.STRING, Codec.DOUBLE);
     public static final Codec<List<Either<String, Double>>> KEYFRAME_INFO_ARRAY_CODEC = Codec.list(KEYFRAME_INFO_CODEC);
-    public static final Codec<AnimationKeyframeData> CODEC = Codec.unboundedMap(Codec.DOUBLE, Codec.either(PrimitiveKeyframeValueData.CODEC, VerboseKeyframeValueData.CODEC)).xmap(
-            keyframeMap -> new AnimationKeyframeData(Optional.ofNullable(keyframeMap)),
-            animationKeyframeData -> animationKeyframeData.keyframes().orElse(Map.of())
+    public static final Codec<AnimationKeyframeData> CODEC = Codec.unboundedMap(Codec.STRING, Codec.either(PrimitiveKeyframeValueData.CODEC, VerboseKeyframeValueData.CODEC)).xmap(
+            keyframeMap -> new AnimationKeyframeData(Optional.of(keyframeMap.entrySet().stream()
+                    .collect(Collectors.toMap(curEntry -> Double.parseDouble(curEntry.getKey()), Map.Entry::getValue, (a, b) -> a, Object2ObjectOpenHashMap::new)))),
+            animationKeyframeData -> animationKeyframeData.keyframes().map(curMap -> curMap.entrySet().stream()
+                    .collect(Collectors.toMap(curEntry -> String.valueOf(curEntry.getKey()), Map.Entry::getValue, (a, b) -> a, Object2ObjectOpenHashMap::new))).orElse(new Object2ObjectOpenHashMap<>())
     );
 
     public record PrimitiveKeyframeValueData(Either<String, Double> xKeyframeTarget, Either<String, Double> yKeyframeTarget, Either<String, Double> zKeyframeTarget) {
         public static final Codec<PrimitiveKeyframeValueData> CODEC = KEYFRAME_INFO_ARRAY_CODEC.xmap(
                 keyframeTargets -> new PrimitiveKeyframeValueData(keyframeTargets.get(0), keyframeTargets.get(1), keyframeTargets.get(2)),
-                primitiveKeyframeValueData -> List.of(primitiveKeyframeValueData.xKeyframeTarget(), primitiveKeyframeValueData.yKeyframeTarget(), primitiveKeyframeValueData.zKeyframeTarget())
+                primitiveKeyframeValueData -> ObjectArrayList.of(primitiveKeyframeValueData.xKeyframeTarget(), primitiveKeyframeValueData.yKeyframeTarget(), primitiveKeyframeValueData.zKeyframeTarget())
         );
     }
 

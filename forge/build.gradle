@@ -38,6 +38,8 @@ legacyForge {
                             "-XX:MaxGCPauseMillis=100", "-XX:+DisableExplicitGC", "-XX:TargetSurvivorRatio=90",
                             "-XX:G1NewSizePercent=35", "-XX:G1MaxNewSizePercent=60",
                             "-XX:G1MixedGCLiveThresholdPercent=50", "-XX:+AlwaysPreTouch", "-Dterminal.ansi=true"]
+
+            logLevel = org.slf4j.event.Level.DEBUG
         }
 
         client {
@@ -46,6 +48,10 @@ legacyForge {
 
         data {
             data()
+
+            programArguments.addAll('--mod', mod_id, '--all')
+            programArguments.addAll('--output', rootProject.project(':common').file('src/generated/resources/').getAbsolutePath())
+            programArguments.addAll('--existing', rootProject.project(':common').file('src/main/resources/').getAbsolutePath())
         }
 
         server {
@@ -54,7 +60,7 @@ legacyForge {
     }
 
     mods {
-        "${mod_id}" {
+        mod_id {
             sourceSet sourceSets.main
         }
     }
