@@ -1,7 +1,13 @@
 package com.mememan.liveplayerreaction.api.animation;
 
 import com.google.common.collect.ImmutableSet;
+import com.mememan.liveplayerreaction.LPRConstants;
+import com.mememan.liveplayerreaction.api.parsing.object.AnimationCollection;
+import com.mememan.liveplayerreaction.api.parsing.object.AnimationData;
+import com.mememan.liveplayerreaction.registry.LPRResourceReloadListeners;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+
+import java.util.Optional;
 
 public final class LPRAnimations {
     private static final ObjectOpenHashSet<String> ANIMATIONS = new ObjectOpenHashSet<>();
@@ -52,6 +58,14 @@ public final class LPRAnimations {
     public static String registerAnimation(String animName) {
         ANIMATIONS.add(animName);
         return animName;
+    }
+
+    public static Optional<AnimationData> getAnimationData(String animName) {
+        Optional<AnimationCollection> primaryPlayerAnimCollection = LPRResourceReloadListeners.ANIMATION_RELOAD_LISTENER.getMappedObjectData() == null || LPRResourceReloadListeners.ANIMATION_RELOAD_LISTENER.getMappedObjectData().isEmpty()
+                ? Optional.empty()
+                : Optional.ofNullable(LPRResourceReloadListeners.ANIMATION_RELOAD_LISTENER.getMappedObjectData().get(LPRConstants.PRIMARY_ANIMATION_COLLECTION));
+
+        return primaryPlayerAnimCollection.flatMap(curCollection -> curCollection.animations().map(curAnimMap -> curAnimMap.get(animName)));
     }
 
     public static ImmutableSet<String> getAnimations() {
