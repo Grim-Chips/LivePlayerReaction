@@ -2,7 +2,6 @@ package com.mememan.liveplayerreaction.api.keyframe;
 
 import com.mojang.serialization.Codec;
 import net.minecraft.util.StringRepresentable;
-import org.jetbrains.annotations.NotNull;
 
 public enum KeyframeType implements StringRepresentable {
     ROTATION,
@@ -16,7 +15,7 @@ public enum KeyframeType implements StringRepresentable {
     }
 
     @Override
-    public @NotNull String getSerializedName() {
+    public String getSerializedName() {
         return name().toLowerCase();
     }
 }
