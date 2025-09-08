@@ -1,15 +1,18 @@
 package com.mememan.liveplayerreaction.api.parsing.object;
 
+import com.mememan.liveplayerreaction.LPRConstants;
 import com.mememan.liveplayerreaction.api.math.easings.BedrockEasing;
 import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import team.unnamed.mocha.runtime.MochaFunction;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 public record AnimationKeyframeData(Optional<Map<Double, Either<PrimitiveKeyframeValueData, VerboseKeyframeValueData>>> keyframes) {
@@ -21,6 +24,19 @@ public record AnimationKeyframeData(Optional<Map<Double, Either<PrimitiveKeyfram
             animationKeyframeData -> animationKeyframeData.keyframes().map(curMap -> curMap.entrySet().stream()
                     .collect(Collectors.toMap(curEntry -> String.valueOf(curEntry.getKey()), Map.Entry::getValue, (a, b) -> a, Object2ObjectOpenHashMap::new))).orElse(new Object2ObjectOpenHashMap<>())
     );
+    private static final Object2ObjectOpenHashMap<String, MochaFunction> CACHED_EXPRESSION_LOOKUP = new Object2ObjectOpenHashMap<>();
+
+    public static Optional<Double> pickValue(Either<String, Double> potentialValue) {
+        if (potentialValue == null) return Optional.empty();
+
+        AtomicReference<Double> pickedValue = new AtomicReference<>(); // Allow for nullability
+
+        potentialValue
+                .ifLeft(molangExpression -> pickedValue.set(CACHED_EXPRESSION_LOOKUP.computeIfAbsent(molangExpression, (String me) -> LPRConstants.MOLANG_EVALUATOR.prepareEval(me)).evaluate()))
+                .ifRight(pickedValue::set);
+
+        return Optional.ofNullable(pickedValue.get());
+    }
 
     public record PrimitiveKeyframeValueData(Either<String, Double> xKeyframeTarget, Either<String, Double> yKeyframeTarget, Either<String, Double> zKeyframeTarget) {
         public static final Codec<PrimitiveKeyframeValueData> CODEC = KEYFRAME_INFO_ARRAY_CODEC.xmap(

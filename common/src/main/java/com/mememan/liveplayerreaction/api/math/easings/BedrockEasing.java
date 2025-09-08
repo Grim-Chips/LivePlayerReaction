@@ -68,6 +68,13 @@ public interface BedrockEasing {
     }
 
     static Double2DoubleFunction applyStepEasing(AnimationTransformationContext transformationContext) {
-        return (interpolationProgress) -> 1.0F;
+        return (interpolationProgress) -> interpolationProgress < 1.0D
+                ? transformationContext.initialTransformValue()
+                .left()
+                .orElse(transformationContext
+                        .initialTransformValue()
+                        .right()
+                        .orElse(transformationContext.finalTransformValue()))
+                : transformationContext.finalTransformValue();
     }
 }
