@@ -33,124 +33,126 @@ public class LivePlayerAnimation implements LiveAnimation {
                                 entry -> {
                                     AnimationBoneKeyframeData boneData = entry.getValue();
 
-                                    return boneData.mappedKeyframeData().map(curBoneKFMap -> {
-                                        List<KeyframeTarget> keyframeTargets = new ObjectArrayList<>();
+                                    return boneData.mappedKeyframeData()
+                                            .map(curBoneKFMap -> {
+                                                List<KeyframeTarget> keyframeTargets = new ObjectArrayList<>();
 
-                                        curBoneKFMap.forEach((kfType, broadKFTarget) -> {
-                                            Optional<List<Either<String, Double>>> primitiveTarget = broadKFTarget.left(); // Doing this instead of #ifLeft/#ifRight since I originally wanted to implement an Either capable of holding both
-                                            Optional<AnimationKeyframeData> nestedAnimationTarget = broadKFTarget.right();
+                                                curBoneKFMap.forEach((kfType, broadKFTarget) -> {
+                                                    Optional<List<Either<String, Double>>> primitiveTarget = broadKFTarget.left(); // Doing this instead of #ifLeft/#ifRight since I originally wanted to implement an Either capable of holding both
+                                                    Optional<AnimationKeyframeData> nestedAnimationTarget = broadKFTarget.right();
 
-                                            primitiveTarget.ifPresentOrElse(primTargets -> {
-                                                DoubleList mappedTarget = primTargets.stream()
-                                                        .map(AnimationKeyframeData::pickValue)
-                                                        .filter(Optional::isPresent)
-                                                        .map(Optional::get)
-                                                        .collect(Collectors.toCollection(DoubleArrayList::new));
+                                                    primitiveTarget.ifPresentOrElse(primTargets -> {
+                                                        DoubleList mappedTarget = primTargets.stream()
+                                                                .map(AnimationKeyframeData::pickValue)
+                                                                .filter(Optional::isPresent)
+                                                                .map(Optional::get)
+                                                                .collect(Collectors.toCollection(DoubleArrayList::new));
 
-                                                if (mappedTarget.size() >= 3) {
-                                                    keyframeTargets.add(new KeyframeTarget(
-                                                            kfType,
-                                                            0,
-                                                            mappedTarget.getDouble(0),
-                                                            mappedTarget.getDouble(1),
-                                                            mappedTarget.getDouble(2),
-                                                            BedrockEasing.LINEAR));
-                                                }
-                                            }, () -> nestedAnimationTarget.ifPresent(akfData -> {
-                                                Optional<Map<Double, Either<AnimationKeyframeData.PrimitiveKeyframeValueData, AnimationKeyframeData.VerboseKeyframeValueData>>> mappedKeyframes = akfData.keyframes();
+                                                        if (mappedTarget.size() >= 3) {
+                                                            keyframeTargets.add(new KeyframeTarget(
+                                                                    kfType,
+                                                                    0,
+                                                                    mappedTarget.getDouble(0),
+                                                                    mappedTarget.getDouble(1),
+                                                                    mappedTarget.getDouble(2),
+                                                                    BedrockEasing.LINEAR));
+                                                        }
+                                                    }, () -> nestedAnimationTarget.ifPresent(akfData -> {
+                                                        Optional<Map<Double, Either<AnimationKeyframeData.PrimitiveKeyframeValueData, AnimationKeyframeData.VerboseKeyframeValueData>>> mappedKeyframes = akfData.keyframes();
 
-                                                mappedKeyframes.ifPresent(keyframes -> {
-                                                    if (!keyframes.isEmpty()) {
-                                                        keyframes.forEach((curTime, verboseTarget) -> {
-                                                            Optional<AnimationKeyframeData.PrimitiveKeyframeValueData> primTarget = verboseTarget.left();
-                                                            Optional<AnimationKeyframeData.VerboseKeyframeValueData> verbTarget = verboseTarget.right();
-                                                            double curTick = curTime * 20.0D;
+                                                        mappedKeyframes.ifPresent(keyframes -> {
+                                                            if (!keyframes.isEmpty()) {
+                                                                keyframes.forEach((curTime, verboseTarget) -> {
+                                                                    Optional<AnimationKeyframeData.PrimitiveKeyframeValueData> primTarget = verboseTarget.left();
+                                                                    Optional<AnimationKeyframeData.VerboseKeyframeValueData> verbTarget = verboseTarget.right();
+                                                                    double curTick = curTime * 20.0D;
 
-                                                            primTarget.ifPresentOrElse(presentPrimTarget -> {
-                                                                Optional<Double> primXTarget = AnimationKeyframeData.pickValue(presentPrimTarget.xKeyframeTarget());
-                                                                Optional<Double> primYTarget = AnimationKeyframeData.pickValue(presentPrimTarget.yKeyframeTarget());
-                                                                Optional<Double> primZTarget = AnimationKeyframeData.pickValue(presentPrimTarget.zKeyframeTarget());
+                                                                    primTarget.ifPresentOrElse(presentPrimTarget -> {
+                                                                        Optional<Double> primXTarget = AnimationKeyframeData.pickValue(presentPrimTarget.xKeyframeTarget());
+                                                                        Optional<Double> primYTarget = AnimationKeyframeData.pickValue(presentPrimTarget.yKeyframeTarget());
+                                                                        Optional<Double> primZTarget = AnimationKeyframeData.pickValue(presentPrimTarget.zKeyframeTarget());
 
-                                                                if (primXTarget.isPresent() && primYTarget.isPresent() && primZTarget.isPresent()) {
-                                                                    keyframeTargets.add(new KeyframeTarget(
-                                                                            kfType,
-                                                                            curTick,
-                                                                            primXTarget.get(),
-                                                                            primYTarget.get(),
-                                                                            primZTarget.get(),
-                                                                            BedrockEasing.LINEAR
-                                                                    ));
-                                                                }
-                                                            }, () -> verbTarget.ifPresent(verbPrimTarget -> {
-                                                                Optional<List<Either<String, Double>>> preKFTarget = verbPrimTarget.preKeyframeTarget();
-                                                                Optional<List<Either<String, Double>>> postKFTarget = verbPrimTarget.postKeyframeTarget();
-                                                                BedrockEasing verbEasing = verbPrimTarget.lerpMode().orElse(BedrockEasing.LINEAR);
+                                                                        if (primXTarget.isPresent() && primYTarget.isPresent() && primZTarget.isPresent()) {
+                                                                            keyframeTargets.add(new KeyframeTarget(
+                                                                                    kfType,
+                                                                                    curTick,
+                                                                                    primXTarget.get(),
+                                                                                    primYTarget.get(),
+                                                                                    primZTarget.get(),
+                                                                                    BedrockEasing.LINEAR
+                                                                            ));
+                                                                        }
+                                                                    }, () -> verbTarget.ifPresent(verbPrimTarget -> {
+                                                                        Optional<List<Either<String, Double>>> preKFTarget = verbPrimTarget.preKeyframeTarget();
+                                                                        Optional<List<Either<String, Double>>> postKFTarget = verbPrimTarget.postKeyframeTarget();
+                                                                        BedrockEasing verbEasing = verbPrimTarget.lerpMode().orElse(BedrockEasing.LINEAR);
 
-                                                                preKFTarget.ifPresentOrElse(preKF -> {
-                                                                    DoubleList preKFTargets = preKF.stream()
-                                                                            .map(AnimationKeyframeData::pickValue)
-                                                                            .filter(Optional::isPresent)
-                                                                            .map(Optional::get)
-                                                                            .collect(Collectors.toCollection(DoubleArrayList::new));
+                                                                        preKFTarget.ifPresentOrElse(preKF -> {
+                                                                            DoubleList preKFTargets = preKF.stream()
+                                                                                    .map(AnimationKeyframeData::pickValue)
+                                                                                    .filter(Optional::isPresent)
+                                                                                    .map(Optional::get)
+                                                                                    .collect(Collectors.toCollection(DoubleArrayList::new));
 
-                                                                    if (preKFTargets.size() >= 3) {
-                                                                        keyframeTargets.add(new KeyframeTarget(
-                                                                                kfType,
-                                                                                curTick,
-                                                                                preKFTargets.getDouble(0),
-                                                                                preKFTargets.getDouble(1),
-                                                                                preKFTargets.getDouble(2),
-                                                                                verbEasing,
-                                                                                postKFTarget
-                                                                                        .filter(curList -> curList.size() >= 3)
-                                                                                        .map(curList -> {
-                                                                                            DoubleList postKFTargets = curList.stream()
-                                                                                                    .map(AnimationKeyframeData::pickValue)
-                                                                                                    .filter(Optional::isPresent)
-                                                                                                    .map(Optional::get)
-                                                                                                    .collect(Collectors.toCollection(DoubleArrayList::new));
+                                                                            if (preKFTargets.size() >= 3) {
+                                                                                keyframeTargets.add(new KeyframeTarget(
+                                                                                        kfType,
+                                                                                        curTick,
+                                                                                        preKFTargets.getDouble(0),
+                                                                                        preKFTargets.getDouble(1),
+                                                                                        preKFTargets.getDouble(2),
+                                                                                        verbEasing,
+                                                                                        postKFTarget
+                                                                                                .filter(curList -> curList.size() >= 3)
+                                                                                                .map(curList -> {
+                                                                                                    DoubleList postKFTargets = curList.stream()
+                                                                                                            .map(AnimationKeyframeData::pickValue)
+                                                                                                            .filter(Optional::isPresent)
+                                                                                                            .map(Optional::get)
+                                                                                                            .collect(Collectors.toCollection(DoubleArrayList::new));
 
-                                                                                            return new KeyframeTarget(
-                                                                                                    kfType,
-                                                                                                    curTick,
-                                                                                                    postKFTargets.getDouble(0),
-                                                                                                    postKFTargets.getDouble(1),
-                                                                                                    postKFTargets.getDouble(2),
-                                                                                                    verbEasing
-                                                                                            );
-                                                                                        })
-                                                                        ));
-                                                                    }
-                                                                }, () -> postKFTarget.ifPresent(postKF -> {
-                                                                    DoubleList postKFTargets = postKF.stream()
-                                                                            .map(AnimationKeyframeData::pickValue)
-                                                                            .filter(Optional::isPresent)
-                                                                            .map(Optional::get)
-                                                                            .collect(Collectors.toCollection(DoubleArrayList::new));
+                                                                                                    return new KeyframeTarget(
+                                                                                                            kfType,
+                                                                                                            curTick,
+                                                                                                            postKFTargets.getDouble(0),
+                                                                                                            postKFTargets.getDouble(1),
+                                                                                                            postKFTargets.getDouble(2),
+                                                                                                            verbEasing
+                                                                                                    );
+                                                                                                })
+                                                                                ));
+                                                                            }
+                                                                        }, () -> postKFTarget.ifPresent(postKF -> {
+                                                                            DoubleList postKFTargets = postKF.stream()
+                                                                                    .map(AnimationKeyframeData::pickValue)
+                                                                                    .filter(Optional::isPresent)
+                                                                                    .map(Optional::get)
+                                                                                    .collect(Collectors.toCollection(DoubleArrayList::new));
 
-                                                                    if (postKFTargets.size() >= 3) {
-                                                                        keyframeTargets.add(new KeyframeTarget(
-                                                                                kfType,
-                                                                                curTick,
-                                                                                postKFTargets.getDouble(0),
-                                                                                postKFTargets.getDouble(1),
-                                                                                postKFTargets.getDouble(2),
-                                                                                verbEasing
-                                                                        ));
-                                                                    }
-                                                                }));
-                                                            }));
+                                                                            if (postKFTargets.size() >= 3) {
+                                                                                keyframeTargets.add(new KeyframeTarget(
+                                                                                        kfType,
+                                                                                        curTick,
+                                                                                        postKFTargets.getDouble(0),
+                                                                                        postKFTargets.getDouble(1),
+                                                                                        postKFTargets.getDouble(2),
+                                                                                        verbEasing
+                                                                                ));
+                                                                            }
+                                                                        }));
+                                                                    }));
+                                                                });
+                                                            }
                                                         });
-                                                    }
+                                                    }));
                                                 });
-                                            }));
-                                        });
 
-                                        return keyframeTargets.stream()
-                                                .dropWhile(curKFT -> Objects.equals(curKFT, KeyframeTarget.zero()))
-                                                .sorted(Comparator.comparingDouble(KeyframeTarget::targetTick))
-                                                .collect(Collectors.toCollection(ObjectArrayList::new));
-                                    }).orElseGet(ObjectArrayList::new);
+                                                return keyframeTargets.stream()
+                                                        .dropWhile(curKFT -> Objects.equals(curKFT, KeyframeTarget.zero()))
+                                                        .sorted(Comparator.comparingDouble(KeyframeTarget::targetTick))
+                                                        .collect(Collectors.toCollection(ObjectArrayList::new));
+                                            })
+                                            .orElseGet(ObjectArrayList::new);
                                 },
                                 (a, b) -> a,
                                 Object2ObjectOpenHashMap::new))))
