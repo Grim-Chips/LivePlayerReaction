@@ -4,16 +4,16 @@ import com.mememan.liveplayerreaction.api.animation.keyframe.KeyframeTarget;
 import com.mememan.liveplayerreaction.api.animation.keyframe.KeyframeTargetStack;
 import com.mememan.liveplayerreaction.api.animation.transform.AnimationTransformationContext;
 import com.mememan.liveplayerreaction.api.keyframe.KeyframeType;
+import com.mememan.liveplayerreaction.api.math.easings.BedrockEasing;
 import com.mojang.datafixers.util.Either;
+import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 public interface LiveAnimation {
 
@@ -23,21 +23,16 @@ public interface LiveAnimation {
     @NotNull
     KeyframeTargetStack getTargetStack();
 
-    default Optional<Vector3f> getTransformationAt(double tickTimeStamp, String boneName, KeyframeType transformationType) {
+    default Optional<Vector3f> getTransformationAt(double renderTickTimeStamp, String boneName, KeyframeType transformationType) {
         KeyframeTargetStack targetStack = getTargetStack();
 
         if (targetStack == null) return Optional.empty();
 
-        Map<String, KeyframeTarget> targets = targetStack.organizedTargets();
+        Map<String, List<KeyframeTarget>> targets = targetStack.organizedTargets();
 
         if (targets.isEmpty()) return Optional.empty();
 
-        // Filter targets for the specific bone and transformation type
-        List<KeyframeTarget> relevantTargets = targets.entrySet().stream()
-                .filter(curEntry -> curEntry.getKey().equals(boneName) && curEntry.getValue().keyframeType() == transformationType)
-                .map(Map.Entry::getValue)
-                .sorted(Comparator.comparingDouble(KeyframeTarget::animRenderTick))
-                .collect(Collectors.toCollection(ObjectArrayList::new));
+        List<KeyframeTarget> relevantTargets = targets.getOrDefault(boneName, ObjectArrayList.of());
 
         if (relevantTargets.isEmpty()) return Optional.empty();
 
@@ -46,9 +41,9 @@ public interface LiveAnimation {
 
         // Find surrounding keyframes
         for (KeyframeTarget target : relevantTargets) {
-            if (target.animRenderTick() == tickTimeStamp) return Optional.of(new Vector3f((float) target.xTarget(), (float) target.yTarget(), (float) target.zTarget())); // Exact match found
+            if (target.targetTick() == renderTickTimeStamp) return Optional.of(new Vector3f((float) target.xTarget(), (float) target.yTarget(), (float) target.zTarget())); // Exact match found
 
-            if (target.animRenderTick() < tickTimeStamp) previous = target;
+            if (target.targetTick() < renderTickTimeStamp) previous = target;
             else if (next == null) {
                 next = target;
                 break; // No need to continue after finding the next keyframe
@@ -64,26 +59,61 @@ public interface LiveAnimation {
                     : Optional.empty();
         }
 
-        // Calculate progress
-        double timeDiff = next.animRenderTick() - previous.animRenderTick();
-        double progress = (tickTimeStamp - previous.animRenderTick()) / timeDiff;
+        // Calculate diff
+        double timeDiff = next.targetTick() - previous.targetTick();
+
+        if (timeDiff == 0) return Optional.of(new Vector3f((float) previous.xTarget(), (float) previous.yTarget(), (float) previous.zTarget()));
+
+        // Hardcoded catmullrom spline args (for now)
+        DoubleArrayList xPoints = new DoubleArrayList(4);
+
+        xPoints.add(previous.xTarget() - (next.xTarget() - previous.xTarget())); // p0 (Get previous-previous point or use previous if not available)
+        xPoints.add(previous.xTarget());  // p1
+        xPoints.add(next.xTarget());      // p2
+        xPoints.add(next.xTarget() + (next.xTarget() - previous.xTarget())); // p3 (Get next-next point or use next if not available)
+
+        // Repeat for y and z axes (duh)
+        DoubleArrayList yPoints = new DoubleArrayList(4);
+
+        yPoints.add(previous.yTarget() - (next.yTarget() - previous.yTarget()));
+        yPoints.add(previous.yTarget());
+        yPoints.add(next.yTarget());
+        yPoints.add(next.yTarget() + (next.yTarget() - previous.yTarget()));
+
+        DoubleArrayList zPoints = new DoubleArrayList(4);
+
+        zPoints.add(previous.zTarget() - (next.zTarget() - previous.zTarget()));
+        zPoints.add(previous.zTarget());
+        zPoints.add(next.zTarget());
+        zPoints.add(next.zTarget() + (next.zTarget() - previous.zTarget()));
 
         // Create transformation context
-        AnimationTransformationContext context = new AnimationTransformationContext(
-                tickTimeStamp,
+        AnimationTransformationContext xCtx = new AnimationTransformationContext(
+                renderTickTimeStamp,
                 timeDiff,
-                Either.left(0.0),
-                progress,
-                Optional.empty()
+                Either.left(previous.xTarget()),
+                next.xTarget(),
+                Optional.of(xPoints)
+        );
+        AnimationTransformationContext yCtx = new AnimationTransformationContext(
+                renderTickTimeStamp,
+                timeDiff,
+                Either.left(previous.yTarget()),
+                next.yTarget(),
+                Optional.of(yPoints)
+        );
+        AnimationTransformationContext zCtx = new AnimationTransformationContext(
+                renderTickTimeStamp,
+                timeDiff,
+                Either.left(previous.zTarget()),
+                next.zTarget(),
+                Optional.of(zPoints)
         );
 
-        // Apply easing function from the next keyframe
-        double easedProgress = next.easing().ease(context).apply(progress);
-
         // Interpolate between keyframes (lerp)
-        float x = (float) (previous.xTarget() + (next.xTarget() - previous.xTarget()) * easedProgress);
-        float y = (float) (previous.yTarget() + (next.yTarget() - previous.yTarget()) * easedProgress);
-        float z = (float) (previous.zTarget() + (next.zTarget() - previous.zTarget()) * easedProgress);
+        float x = (float) BedrockEasing.applyEasingTransformation(next.easing(), xCtx);
+        float y = (float) BedrockEasing.applyEasingTransformation(next.easing(), yCtx);
+        float z = (float) BedrockEasing.applyEasingTransformation(next.easing(), zCtx);
 
         return Optional.of(new Vector3f(x, y, z));
     }

@@ -27,8 +27,8 @@ public class MolangQueryRegistrar implements ObjectValue { // Primarily meant to
     public static final String IS_ON_FIRE_BINDING = "is_on_fire";
 
     protected final Player ownerPlayer;
-    protected final Minecraft mc = Minecraft.getInstance();
     protected final ClientLevel curLevel;
+    protected final Minecraft mc = Minecraft.getInstance();
 
     @Binding(ANIM_TIME_BINDING)
     public double animTime;
@@ -44,6 +44,7 @@ public class MolangQueryRegistrar implements ObjectValue { // Primarily meant to
     public double groundSpeed;
     @Binding(YAW_SPEED)
     public double yawSpeed;
+
     @Binding(IS_ON_GROUND_BINDING)
     public double isOnGround;
     @Binding(IS_IN_WATER_BINDING)
