@@ -22,6 +22,16 @@ public class ConfigurableAnimation {
         return builder(animationName).build();
     }
 
+    public static ConfigurableAnimation copyFrom(ConfigurableAnimation existingAnim) {
+        return builder(existingAnim.getAnimationName())
+                .animLength(existingAnim.getAnimationData().animLength())
+                .blendWeight(existingAnim.getAnimationData().blendWeight())
+                .animSpeed(existingAnim.getAnimationData().animSpeed())
+                .overridePreviousAnimation(existingAnim.getAnimationData().overridePreviousAnimation())
+                .loop(existingAnim.getAnimationData().loop())
+                .build();
+    }
+
     public String getAnimationName() {
         return animationName;
     }

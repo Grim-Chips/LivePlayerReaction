@@ -8,8 +8,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-public record AnimationBoneKeyframeData(Optional<Map<KeyframeType, Either<List<Either<Double, String>>, AnimationKeyframeData>>> mappedKeyframeData) {
-    public static final Codec<AnimationBoneKeyframeData> CODEC = Codec.unboundedMap(KeyframeType.CODEC, Codec.either(Codec.list(Codec.either(Codec.DOUBLE, Codec.STRING)), AnimationKeyframeData.CODEC)).xmap(
+public record AnimationBoneKeyframeData(Optional<Map<KeyframeType, Either<List<Either<String, Double>>, AnimationKeyframeData>>> mappedKeyframeData) {
+    public static final Codec<AnimationBoneKeyframeData> CODEC = Codec.unboundedMap(KeyframeType.CODEC, Codec.either(Codec.list(Codec.either(Codec.STRING, Codec.DOUBLE)), AnimationKeyframeData.CODEC)).xmap(
             keyframeMap -> new AnimationBoneKeyframeData(Optional.ofNullable(keyframeMap)),
             animationBoneKeyframeData -> animationBoneKeyframeData.mappedKeyframeData().orElse(Map.of())
     );
